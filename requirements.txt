@@ -1,0 +1,5 @@
+gymnasium[atari]
+stable-baselines3
+ale-py
+tensorboard
+shimmy>=0.2.1
