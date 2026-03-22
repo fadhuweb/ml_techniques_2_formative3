@@ -7,10 +7,6 @@ from stable_baselines3 import DQN
 from stable_baselines3.common.monitor import Monitor
 from stable_baselines3.common.callbacks import EvalCallback
 from stable_baselines3.common.logger import configure
-from stable_baselines3.common.atari_wrappers import AtariWrapper
-from stable_baselines3.common.vec_env import DummyVecEnv, VecTransposeImage
-import shutil
-import csv
 
 
 def parse_args():
@@ -38,7 +34,7 @@ def parse_args():
                         help="Fraction of timesteps over which epsilon decays (default: 0.1)")
 
     # Training settings
-    parser.add_argument("--timesteps", type=int, default=500000,
+    parser.add_argument("--timesteps", type=int, default=100000,
                         help="Total training timesteps (default: 500000)")
     parser.add_argument("--run_all", action="store_true",
                         help="Run all 10 experiments automatically")
@@ -49,17 +45,18 @@ def parse_args():
 def train(args):
     """Train the DQN agent with the given hyperparameters."""
 
-    
-    # Create directories
-   
+    # =========================================================================
+    # STEP 1: Create directories
+    # =========================================================================
     experiment_name = f"exp{args.experiment}_lr{args.lr}_g{args.gamma}_bs{args.batch_size}_es{args.epsilon_start}_ee{args.epsilon_end}_ed{args.epsilon_decay}"
     log_dir = os.path.join("..", "logs", experiment_name)
     model_dir = os.path.join("..", "models")
     os.makedirs(log_dir, exist_ok=True)
     os.makedirs(model_dir, exist_ok=True)
 
-   
+    print("=" * 60)
     print(f"  EXPERIMENT {args.experiment}: DQN with CnnPolicy on Assault")
+    print("=" * 60)
     print(f"  Member:            {args.member_name}")
     print(f"  Learning Rate:     {args.lr}")
     print(f"  Gamma:             {args.gamma}")
@@ -69,27 +66,25 @@ def train(args):
     print(f"  Epsilon Decay:     {args.epsilon_decay}")
     print(f"  Total Timesteps:   {args.timesteps}")
     print(f"  Log Directory:     {log_dir}")
+    print("=" * 60)
 
-   
-    # Create training and evaluation environments
+    # =========================================================================
+    # STEP 2: Create training and evaluation environments
+    # =========================================================================
     train_env = gym.make("ALE/Assault-v5")
-    train_env = AtariWrapper(train_env)
     train_env = Monitor(train_env)
 
     eval_env = gym.make("ALE/Assault-v5")
-    eval_env = AtariWrapper(eval_env)
     eval_env = Monitor(eval_env)
-    # Wrap eval env the same way SB3 wraps training env
-    eval_env = DummyVecEnv([lambda: eval_env])
-    eval_env = VecTransposeImage(eval_env)
 
-    # Set up logging (TensorBoard + CSV)
-    
+    # =========================================================================
+    # STEP 3: Set up logging (TensorBoard + CSV)
+    # =========================================================================
     logger = configure(log_dir, ["stdout", "csv", "tensorboard"])
 
-    
-    #Define the DQN agent with CnnPolicy
-    
+    # =========================================================================
+    # STEP 4: Define the DQN agent with CnnPolicy
+    # =========================================================================
     model = DQN(
         policy="CnnPolicy",
         env=train_env,
@@ -99,7 +94,7 @@ def train(args):
         exploration_initial_eps=args.epsilon_start,
         exploration_final_eps=args.epsilon_end,
         exploration_fraction=args.epsilon_decay,
-        buffer_size=10000,          
+        buffer_size=10000,
         learning_starts=1000,
         target_update_interval=1000,
         train_freq=4,
@@ -111,9 +106,9 @@ def train(args):
 
     model.set_logger(logger)
 
-
-    # Set up evaluation callback
-    
+    # =========================================================================
+    # STEP 5: Set up evaluation callback (evaluates every 50k steps)
+    # =========================================================================
     eval_callback = EvalCallback(
         eval_env,
         best_model_save_path=os.path.join(model_dir, experiment_name),
@@ -124,9 +119,9 @@ def train(args):
         render=False,
     )
 
-    
-    # Train the agent
-   
+    # =========================================================================
+    # STEP 6: Train the agent
+    # =========================================================================
     print("\nStarting training...\n")
     start_time = datetime.now()
 
@@ -139,19 +134,25 @@ def train(args):
     training_time = datetime.now() - start_time
     print(f"\nTraining completed in {training_time}")
 
-    
-    # Save the BEST model 
+    # =========================================================================
+    # STEP 7: Save the BEST model (not the final one)
+    # =========================================================================
+    # The EvalCallback already saved the best model during training.
+    # Copy it to models/dqn_model.zip and experiment-specific path.
+    import shutil
+
     best_model_src = os.path.join(model_dir, experiment_name, "best_model.zip")
 
     if os.path.exists(best_model_src):
+        # Copy best model as the main dqn_model.zip
         shutil.copy(best_model_src, os.path.join(model_dir, "dqn_model.zip"))
         print(f"Best model saved to models/dqn_model.zip")
 
-      
+        # Also copy as experiment-specific model
         shutil.copy(best_model_src, os.path.join(model_dir, f"dqn_model_exp{args.experiment}.zip"))
         print(f"Best model also saved to models/dqn_model_exp{args.experiment}.zip")
     else:
-        
+        # Fallback: save final model if best model wasn't saved for some reason
         model.save(os.path.join(model_dir, "dqn_model"))
         model.save(os.path.join(model_dir, f"dqn_model_exp{args.experiment}"))
         print(f"Best model not found, saved final model instead.")
@@ -160,28 +161,29 @@ def train(args):
     best_model_path = os.path.join(model_dir, "dqn_model.zip")
     model = DQN.load(best_model_path)
 
-    
-    #Evaluate over 10 episodes
-    print(f"  EXPERIMENT {args.experiment} EVALUATION ")
+    # =========================================================================
+    # STEP 8: Evaluate over 10 episodes
+    # =========================================================================
+    print("\n" + "=" * 60)
+    print(f"  EXPERIMENT {args.experiment} EVALUATION (10 episodes)")
+    print("=" * 60)
+
     eval_env_final = gym.make("ALE/Assault-v5")
-    eval_env_final = AtariWrapper(eval_env_final)
-    eval_env_final = DummyVecEnv([lambda: eval_env_final])
-    eval_env_final = VecTransposeImage(eval_env_final)
     rewards = []
     lengths = []
 
     for episode in range(10):
-        obs = eval_env_final.reset()
+        obs, info = eval_env_final.reset()
         done = False
         episode_reward = 0
         episode_length = 0
 
         while not done:
             action, _ = model.predict(obs, deterministic=True)
-            obs, reward, terminated, info = eval_env_final.step(action)
-            episode_reward += reward[0]
+            obs, reward, terminated, truncated, info = eval_env_final.step(action)
+            episode_reward += reward
             episode_length += 1
-            done = terminated[0]
+            done = terminated or truncated
 
         rewards.append(episode_reward)
         lengths.append(episode_length)
@@ -199,9 +201,13 @@ def train(args):
     print(f"  Average Length:  {avg_length:.1f}")
     print("-" * 60)
 
-    
-    # Save experiment results to CSV 
-    BASELINE_AVG_REWARD = 518.7
+    # =========================================================================
+    # STEP 9: Save experiment results to CSV (appends each experiment as a row)
+    # =========================================================================
+    import csv
+
+    # --- Auto-generate Noted Behavior ---
+    BASELINE_AVG_REWARD = 363.3  # <-- Update this with your actual baseline result
     BASELINE_LR = 0.0001
     BASELINE_GAMMA = 0.99
     BASELINE_BATCH = 32
@@ -328,15 +334,19 @@ def train(args):
 
     print(f"Results appended to {csv_file}")
 
- 
-    
+    # =========================================================================
+    # STEP 10: Print summary for the hyperparameter table
+    # =========================================================================
+    print("\n" + "=" * 60)
+    print("  COPY THIS ROW INTO YOUR HYPERPARAMETER TABLE")
+    print("=" * 60)
     print(f"  Experiment:      {args.experiment}")
     print(f"  Member:          {args.member_name}")
     print(f"  Hyperparameters: lr={args.lr}, gamma={args.gamma}, batch_size={args.batch_size}, epsilon_start={args.epsilon_start}, epsilon_end={args.epsilon_end}, epsilon_decay={args.epsilon_decay}")
     print(f"  Avg Reward:      {avg_reward:.1f}")
     print(f"  Best Reward:     {best_reward:.1f}")
     print(f"  Training Time:   {training_time}")
-    
+    print("=" * 60)
 
     # Cleanup
     train_env.close()
@@ -347,9 +357,10 @@ def train(args):
 def run_all_experiments():
     """Run all 10 hyperparameter experiments automatically."""
 
-    MEMBER_NAME = "Fadhlullah"  
+    MEMBER_NAME = "Fadhl"  # <-- Change this to your name
 
-    
+    # Baseline defaults: lr=0.0001, gamma=0.99, batch_size=32,
+    #                    epsilon_start=1.0, epsilon_end=0.05, epsilon_decay=0.1
 
     experiments = [
         # Experiments 1-3: Vary Learning Rate
@@ -375,7 +386,7 @@ def run_all_experiments():
     defaults = {
         "lr": 0.0001, "gamma": 0.99, "batch_size": 32,
         "epsilon_start": 1.0, "epsilon_end": 0.05, "epsilon_decay": 0.1,
-        "timesteps": 500000,
+        "timesteps": 100000,
     }
 
     print("=" * 60)
@@ -393,9 +404,10 @@ def run_all_experiments():
             **{**defaults, **exp}
         )
 
-        
+        print("\n" + "=" * 60)
         print(f"  STARTING EXPERIMENT {exp_num} of {len(experiments)}")
-        
+        print(f"  Changes from baseline: {exp}")
+        print("=" * 60 + "\n")
 
         try:
             train(exp_args)
@@ -405,13 +417,14 @@ def run_all_experiments():
             results[exp_num] = "FAILED"
 
     # Print final summary
-    
+    print("\n" + "=" * 60)
     print("  ALL EXPERIMENTS FINISHED")
-   
+    print("=" * 60)
     for exp_num, status in results.items():
         print(f"  Experiment {exp_num:2d}: {status}")
-    
-   
+    print("=" * 60)
+    print(f"\n  Check the 'logs' folder for detailed results.")
+    print(f"  Check the 'models' folder for saved models.")
 
 
 if __name__ == "__main__":
