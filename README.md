@@ -37,4 +37,29 @@ A total of 40 experiments were conducted to explore different combinations of hy
 - Learning Starts: 1,000 steps
 - Target Update Interval: 1,000 steps
 - Train Frequency: every 4 steps
-All experiments and results are documented here
+All experiments and results are documented [here](https://docs.google.com/spreadsheets/d/1E7JWT3_4jDCHLWUFGVtR_gzomi6mxVNZyZ_mFhYhvto/edit?usp=sharing)
+
+## Best Model
+
+Selected Model: 
+Hyperparameters:
+Average Reward: 
+Reason for Selection:
+This model achieved the highest average reward by balancing learning speed, future reward estimation, and exploration-exploitation tradeoff.
+
+## How to Play
+
+Use play.py to load and visualize the trained agent:
+
+```python play.py```
+
+Notes:
+The script automatically uses DummyVecEnv and VecTransposeImage to match the training preprocessing.
+Gameplay will render in a GUI window.
+The agent plays using a greedy policy, always selecting the action with the highest predicted Q-value.
+
+## Contributors
+Jinelle Nformi
+Wenebi Fiderikumo
+Fadhlullah Abdulazeez
+Emmanuel Dania
