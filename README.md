@@ -41,9 +41,9 @@ A total of 40 experiments were conducted to explore different combinations of hy
 
 ## Best Model
 
-- Selected Model: 
-- Hyperparameters:
-- Average Reward: 
+- Selected Model: Jinelle's Experiment 10 (models/best_experiment.zip)
+- Hyperparameters: lr=0.0005, gamma=0.95, batch=64, eps_start=1.0, eps_end=0.1, eps_frac=0.2
+- Average Reward: 474.60
 - Reason for Selection: This model achieved the highest average reward by balancing learning speed, future reward estimation, and exploration-exploitation tradeoff.
 - Demo video showing agent playing in the Atari environment [here](https://drive.google.com/drive/folders/1EJ9PdQBcQeIDBgYKYJ2rjRa1SobF9cJa?usp=drive_link)
 
