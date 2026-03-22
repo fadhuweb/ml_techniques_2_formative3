@@ -41,11 +41,11 @@ All experiments and results are documented [here](https://docs.google.com/spread
 
 ## Best Model
 
-Selected Model: 
-Hyperparameters:
-Average Reward: 
-Reason for Selection:
-This model achieved the highest average reward by balancing learning speed, future reward estimation, and exploration-exploitation tradeoff.
+- Selected Model: 
+- Hyperparameters:
+- Average Reward: 
+- Reason for Selection: This model achieved the highest average reward by balancing learning speed, future reward estimation, and exploration-exploitation tradeoff.
+- Demo video showing agent playing in the Atari environment [here](https://drive.google.com/drive/folders/1EJ9PdQBcQeIDBgYKYJ2rjRa1SobF9cJa?usp=drive_link)
 
 ## How to Play
 
@@ -59,7 +59,7 @@ Gameplay will render in a GUI window.
 The agent plays using a greedy policy, always selecting the action with the highest predicted Q-value.
 
 ## Contributors
-Jinelle Nformi
-Wenebi Fiderikumo
-Fadhlullah Abdulazeez
-Emmanuel Dania
+- Jinelle Nformi
+- Wenebi Fiderikumo
+- Fadhlullah Abdulazeez
+- Emmanuel Dania
