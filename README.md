@@ -37,7 +37,7 @@ A total of 40 experiments were conducted to explore different combinations of hy
 - Learning Starts: 1,000 steps
 - Target Update Interval: 1,000 steps
 - Train Frequency: every 4 steps
-All experiments and results are documented [here](https://docs.google.com/spreadsheets/d/1E7JWT3_4jDCHLWUFGVtR_gzomi6mxVNZyZ_mFhYhvto/edit?usp=sharing)
+- All experiments and results are documented [here](https://docs.google.com/spreadsheets/d/1E7JWT3_4jDCHLWUFGVtR_gzomi6mxVNZyZ_mFhYhvto/edit?usp=sharing)
 
 ## Best Model
 
