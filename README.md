@@ -10,7 +10,31 @@ Key goals:
 - Select the best-performing model for gameplay demonstrations.
 
 ---
+## Choice of Policy: CNN vs MLP
 
+In our experiments, we evaluated **two types of policies** in the **DQN framework** for the `ALE/Assault-v5` environment:  
+
+1. **MlpPolicy** – A fully connected multi-layer perceptron (MLP) that takes raw RAM observations (128 bytes) as input.  
+2. **CnnPolicy** – A convolutional neural network (CNN) that processes the raw visual frames (210x160x3) from the Atari environment.
+
+### Evaluation Results
+
+| Metric | MlpPolicy (RAM) | CnnPolicy (Frames) |
+|--------|-----------------|------------------|
+| Average Reward | 363.3 | 518.7 |
+| Best Reward | 462.0 | 609.0 |
+| Worst Reward | 231.0 | 378.0 |
+| Average Episode Length | 642.6 | 1764.0 |
+
+**Observations:**  
+- The **CNN policy significantly outperformed** the MLP policy across all metrics.  
+- With CNN, the agent achieved a higher **average reward (+43%)**, a higher **best reward**, and much longer **episode lengths**, indicating better strategy and survival.  
+- MLP on RAM struggled to capture the spatial and temporal patterns of the game, which limited performance despite consistent training.
+
+**Conclusion:**  
+The CNN policy is clearly superior for frame-based Atari environments. Therefore, all further experiments and the final playing agent use `CnnPolicy` to maximize performance.
+
+---
 ## Environment & Tools
 
 - **Python**: 3.10+  
